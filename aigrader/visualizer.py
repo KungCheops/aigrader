@@ -1,13 +1,13 @@
 import ast
-
-import zss
 import math
-import astor
-import showast
-from zss import compare as zss_compare
 from collections import defaultdict
 from itertools import zip_longest
-from assignment_helper import ASTWrapper, get_distance, ASSIGNMENTS
+
+import astor
+import zss
+from zss import compare as zss_compare
+
+from .assignment_helper import ASTWrapper, get_distance
 
 def read_lines(file_path):
     with open(file_path, 'r') as f:
