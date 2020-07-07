@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 
 setup(
-    name='AI grader',
+    name='aigrader',
     version='0.1',
     packages=['aigrader',],
     install_requires=[
