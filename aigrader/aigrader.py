@@ -19,10 +19,16 @@ def cli():
 
 @cli.command(help='Compute edit distance between all file provided.')
 @click.argument('submissions', type=click.Path(exists=True), nargs=-1, required=True)
-@click.option('--scaffold', help='Path to scaffold file.', type=click.Path(exists=True), default='scaffold.py')
-@click.option('--output', help='Directory to save the result in.', type=click.Path(), default='output')
-def editdist(submissions, scaffold, output):
-    assignment_helper.calculate_edit_distance(submissions, scaffold, output)
+@click.option('--output', help='Directory to save the result in.', type=click.Path(), default='output', show_default=True)
+@click.option('--path-to-scaffold', help='Path to scaffold file. Ignored if \'--no-scaffold\' flag is set.', type=click.Path(), default='scaffold.py', show_default=True)
+@click.option('--function-match/--no-function-match', ' /-f', default=True, help='Whether or not to match functions directly instead of full source code ASTs.', show_default=True)
+@click.option('--scaffold/--no-scaffold', ' /-s', default=True, help='Whether or not to use a scaffold file.', show_default=True)
+@click.option('--assignments/--ignore-assignments', ' /-a', default=True, help='Whether or not to consider assignment statements when parsing the ASTs (ignoring assignments can speed up computation speed).', show_default=True)
+def editdist(submissions, path_to_scaffold, output, scaffold, function_match, assignments):
+    if not function_match:
+        assignment_helper.calculate_edit_distance_no_function_matching(submissions, output, not assignments)
+    else:
+        assignment_helper.calculate_edit_distance(submissions, scaffold_path, output)
 
 @cli.command(help='Cluster submissions based on comparison file, saved in {output}/linkage.npy.')
 @click.option('--method', default='ward', help='Clustering method to use.', show_default=True)

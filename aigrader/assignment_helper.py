@@ -71,6 +71,22 @@ class Assignment:
         self.submissions = submissions
         self.comparison_table = comparison_table
 
+def calculate_edit_distance_no_function_matching(files: tuple, output_path: str, ignore_assignments: bool) -> Assignment:
+    N = len(files)
+    table = [[0]*N for _ in range(N)]
+    parsed_files = []
+    for path in files:
+        with open(path) as f:
+            parsed_files.append(ASTWrapper(ast.parse(f.read()), ignore_assignments=ignore_assignments))
+    for i in range(N):
+        for j in range(i + 1, N):
+            table[j][i] = get_distance(parsed_files[i], parsed_files[j])
+    os.makedirs(output_path, exist_ok=True)
+    comparison_path = os.path.join(output_path, "comparison.npy")
+    assignment.comparison_table = get_comparison_table(assignment, comparison_path)
+    print(assignment.comparison_table)
+    print(len(assignment.comparison_table))
+    return assignment
 
 def calculate_edit_distance(files: tuple,
                             scaffold_path: str,
@@ -133,8 +149,8 @@ def get_distance(node1: ASTWrapper,
 
 
 def get_comparison_table(assignment: Assignment, file_path: Optional[str]) -> List[List[int]]:
-    if file_path is not None and os.path.exists(file_path):
-        return numpy.load(file_path)
+    # if file_path is not None and os.path.exists(file_path):
+    #     return numpy.load(file_path)
     N = len(assignment.submissions)
     table = [[0]*N for _ in range(N)]
     for i in range(N):
