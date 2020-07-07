@@ -2,11 +2,23 @@
 
 ## Installation
 
-1) Download the repository
+1) Installing `aigrader` as dependency:
 
-2) cd into the repository
+```
+pip install https://github.com/KungCheops/aigrader/tarball/master#egg=aigrader
+```
 
-3a) (optional) create a virtual environment
+## For development (Testing)
+
+1) Download repository and run tests with tox which will be installed:
+
+```
+git clone git@github.com:KungCheops/aigrader.git
+cd aigrader
+make test
+```
+
+2a) (Optional) Create a virtual environment
 
 3) Run 'pip install .' or 'pip install --user .'
 
