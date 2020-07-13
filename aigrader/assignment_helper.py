@@ -71,51 +71,32 @@ class Assignment:
         self.submissions = submissions
         self.comparison_table = comparison_table
 
-def calculate_edit_distance_no_function_matching(files: tuple, output_path: str, ignore_assignments: bool) -> Assignment:
-    N = len(files)
-    table = [[0]*N for _ in range(N)]
-    parsed_files = []
-    for path in files:
-        with open(path) as f:
-            parsed_files.append(ASTWrapper(ast.parse(f.read()), ignore_assignments=ignore_assignments))
-    for i in range(N):
-        for j in range(i + 1, N):
-            table[j][i] = get_distance(parsed_files[i], parsed_files[j])
-    os.makedirs(output_path, exist_ok=True)
-    comparison_path = os.path.join(output_path, "comparison.npy")
-    assignment.comparison_table = get_comparison_table(assignment, comparison_path)
-    print(assignment.comparison_table)
-    print(len(assignment.comparison_table))
-    return assignment
+def parse_file(path, ignore_assignments):
+    with open(path) as f:
+        return ASTWrapper(ast.parse(f.read()), ignore_assignments=ignore_assignments)
 
-def calculate_edit_distance(files: tuple,
-                            scaffold_path: str,
-                            output_path: str) -> Assignment:
-    root = ASTWrapper(astor.parse_file(scaffold_path), True)
-    scaffold_functions: List[str] = list(find_functions(root, []).keys())
-    print("Scaffold functions:")
-    for name in scaffold_functions:
-        print(f' - {name}')
-    assignment = Assignment(None,
-                            scaffold_functions,
-                            [], None)
-    for source in files:
-        root = ASTWrapper(astor.parse_file(source), True)
-        functions = find_functions(root, assignment.scaffolds)
-        is_incomplete = False
-        for scaffold in assignment.scaffolds:
-            if scaffold not in functions:
-                print(f"Skipping {source} as {scaffold} is not found.")
-                is_incomplete = True
-        if not is_incomplete:
-            assignment.submissions.append(Submission(source, functions))
-    os.makedirs(output_path, exist_ok=True)
-    comparison_path = os.path.join(output_path, "comparison.npy")
-    assignment.comparison_table = get_comparison_table(assignment, comparison_path)
-    print(assignment.comparison_table)
-    print(len(assignment.comparison_table))
-    return assignment
-
+def calculate_edit_distance(submissions : List[ASTWrapper], match_functions : bool, scaffold : List[str] = None) -> np.array:
+    N = len(submissions)
+    table = np.array([[0] * N] * N, dtype=int)
+    if not match_functions:
+        for i in range(N):
+            for j in range(i + 1, N):
+                table[j][i] = table[i][j] = get_distance(submissions[i], submissions[j])
+    else:
+        if scaffold is not None:
+            # use scaffold
+            submission_functions = [find_functions(submission, scaffold) for submission in submissions]
+            for i in range(N):
+                for j in range(i + 1, N):
+                    total = 0
+                    for scaffold_function in scaffold:
+                        total += get_distance(submission_functions[i][scaffold_function], submission_functions[j][scaffold_function])
+                    table[j][i] = table[i][j] = total
+            return table
+        else:
+            # don't use scaffold, try all function combinations?
+            return table
+    return table
 
 # ZSS
 def get_children(node: ASTWrapper) -> List[ASTWrapper]:
@@ -146,23 +127,3 @@ def get_distance(node1: ASTWrapper,
                         delete_cost, 
                         update_cost,
                         return_operations=return_operations)
-
-
-def get_comparison_table(assignment: Assignment, file_path: Optional[str]) -> List[List[int]]:
-    # if file_path is not None and os.path.exists(file_path):
-    #     return numpy.load(file_path)
-    N = len(assignment.submissions)
-    table = [[0]*N for _ in range(N)]
-    for i in range(N):
-        print(f'{i+1}/{N}')
-        for j in range(i+1, N):
-            total = 0
-            for scaffold in assignment.scaffolds:
-                total += get_distance(assignment.submissions[i].functions[scaffold],
-                                      assignment.submissions[j].functions[scaffold])
-            table[j][i] = table[i][j] = total
-    result = numpy.array(table, dtype=int)
-    if file_path is not None:
-        numpy.save(file_path, result)
-    return result
-
