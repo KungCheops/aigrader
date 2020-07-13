@@ -10,7 +10,7 @@ from collections import defaultdict
 
 
 class ASTWrapper:
-    
+
     def __init__(self, ast_node, ignore_assignments=False, parent=None):
         self.ast_node = ast_node
         self.label = ast_node.__class__.__name__
@@ -116,14 +116,13 @@ def update_cost(node1: ASTWrapper, node2: ASTWrapper) -> float:
         return 0
     return math.inf
 
-
 def get_distance(node1: ASTWrapper,
                  node2: ASTWrapper,
                  return_operations: bool=False) -> int:
     return zss.distance(node1,
                         node2,
-                        get_children, 
-                        insert_cost, 
-                        delete_cost, 
+                        get_children,
+                        insert_cost,
+                        delete_cost,
                         update_cost,
                         return_operations=return_operations)
