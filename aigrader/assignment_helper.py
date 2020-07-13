@@ -33,10 +33,10 @@ class ASTWrapper:
         return self.ast_node.lineno
 
 
-def find_functions(node: ASTWrapper, names: List[str]) -> Dict[str, ASTWrapper]:
+def find_functions(node: ASTWrapper, names: List[str] = None) -> Dict[str, ASTWrapper]:
     G = {}
     if node.label == 'FunctionDef':
-        if len(names) == 0 or node.ast_node.name in names:
+        if names is None or node.ast_node.name in names:
             G[node.ast_node.name] = node
     else:
         for child in node.children:
