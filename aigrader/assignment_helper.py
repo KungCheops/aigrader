@@ -2,7 +2,7 @@ import ast
 import astor
 import glob
 import math
-import numpy
+import numpy as np
 import os.path
 import zss
 from typing import List, Dict, Optional
@@ -59,13 +59,13 @@ class Assignment:
     glob: str
     scaffolds: List[str]
     submissions: List[Submission]
-    comparison_table: Optional[numpy.array]
+    comparison_table: Optional[np.array]
 
     def __init__(self,
                  glob: str,
                  scaffolds: List[str],
                  submissions: List[Submission],
-                 comparison_table: Optional[numpy.array]):
+                 comparison_table: Optional[np.array]):
         self.glob = glob
         self.scaffolds = scaffolds
         self.submissions = submissions
