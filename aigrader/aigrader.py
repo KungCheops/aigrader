@@ -1,9 +1,9 @@
 import glob
 
 import click
-import os
-from aigrader import assignment_helper as ah
-from scipy.cluster.hierarchy import dendrogram as scipy_dendrogram, linkage
+import os, shutil
+from aigrader import assignment_helper as ah, human_in_the_loop as hloop
+from scipy.cluster.hierarchy import dendrogram as scipy_dendrogram, linkage, fcluster
 from scipy.spatial.distance import squareform
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -36,11 +36,11 @@ def editdist(submissions, output, function_match, scaffold, ignore_assignments):
     np.save(output_path, edit_distances)
     click.echo(f'Saved as \'{output_path}\'.')
 
-@cli.command(help='Cluster submissions based on edit distance file, saved in {output}/linkage.npy.')
+@cli.command(help='Create linkage matrix for submissions based on edit distance file, saved in {output}/linkage.npy.')
 @click.option('--method', default='ward', help='Clustering method to use.', show_default=True)
 @click.option('--path-to-editdist', help='Path to edit_distances.npy file.', type=click.Path(exists=True), default='output/edit_distances.npy')
 @click.option('--output', help='Directory to save the result in.', type=click.Path(), default='output')
-def cluster(method, path_to_editdist, output):
+def linkage(method, path_to_editdist, output):
     click.echo('Cluster submissions based on comparison file.')
     comparison_table = np.load(path_to_editdist)
     dists = squareform(comparison_table)
@@ -51,20 +51,81 @@ def cluster(method, path_to_editdist, output):
     click.echo(f'Saved as \'{output_path}\'.')
 
 @cli.command()
+@click.argument('submissions', type=click.Path(exists=True), nargs=-1, required=True)
+# @click.option('--output', help='Directory to save the result in.', type=click.Path(), default='output', show_default=True)
+@click.option('--function-match', '-f', is_flag=True, help='Match functions directly instead of comparing full source code ASTs.')
+@click.option('--scaffold', '-s', type=click.Path(), help='Provide a scaffold file to use for function name matching.')
 def abctest():
     click.echo('Test computed edit distance.')
     # TODO implement
 
+def _symlink_rel(src, dst):
+    rel_path_src = os.path.relpath(src, os.path.dirname(dst))
+    os.symlink(rel_path_src, dst)
+
+def save_clustering_as_directory_structure(submissions, clustering, output_path):
+    if os.path.isdir(output_path):
+        shutil.rmtree(output_path)
+    os.mkdir(output_path)
+    num_clusters = len(clustering)
+    if num_clusters > 1:
+        zero_padding = int(np.log10(num_clusters - 1)) + 1
+    else:
+        zero_padding = 0
+    for index, file_ids in enumerate(clustering):
+        cluster_dir_path = os.path.join(output_path, f'{index}'.zfill(zero_padding))
+        os.mkdir(cluster_dir_path)
+        for file_id in file_ids:
+            submission_name = submissions[file_id]
+            _symlink_rel(submission_name, os.path.join(cluster_dir_path, submission_name))
+
 @cli.command(help='Create cluster groups from linkage using a human-in-the-loop method.')
 @click.argument('submissions', type=click.Path(exists=True), nargs=-1, required=True)
+@click.option('--output', help='Directory to save the result in.', type=click.Path(), default='output', show_default=True)
 @click.option('--path-to-editdist', help='Path to edit_distances.npy file.', type=click.Path(exists=True), default='output/edit_distances.npy')
 @click.option('--path-to-linkage', help='Path to linkage.npy file.', type=click.Path(exists=True), default='output/linkage.npy')
-def mclust(submissions, path_to_editdist, path_to_linkage):
+def mclust(submissions, output, path_to_editdist, path_to_linkage):
     comparison_table = np.load(path_to_editdist)
     linkage_matrix = np.load(path_to_linkage)
     tree = hloop.create_tree(linkage_matrix, len(submissions))
     clustering = hloop.split_tree(submissions, comparison_table, tree)
+    output_path = os.path.join(output, 'clusters')
+    save_clustering_as_directory_structure(submissions, clustering, output_path)
+    click.echo(f'Clusters have been saved in {output_path}')
+
+def fcluster_to_clustering(fcluster):
+    clusters_dict = dict()
+    for i in range(len(fcluster)):
+        if fcluster[i] not in clusters_dict:
+            clusters_dict[fcluster[i]] = set()
+        clusters_dict[fcluster[i]].add(i)
+    clusters = []
+    for _, value in clusters_dict.items():
+        clusters.append(list(value))
+    return clusters
+
+@cli.command(help='Create cluster groups from linkage using either a max distance or a max number of clusters.')
+@click.argument('submissions', type=click.Path(exists=True), nargs=-1, required=True)
+@click.option('--max-distance', '-d', help='Set a maximum distance between two clusters.', type=float)
+@click.option('--num-clusters', '-n', help='Set the number of preferred clusters (overrides --max-distances).', type=int)
+@click.option('--output', help='Directory to save the result in.', type=click.Path(), default='output', show_default=True)
+@click.option('--path-to-linkage', help='Path to linkage.npy file.', type=click.Path(exists=True), default='output/linkage.npy')
+def cluster(submissions, max_distance, num_clusters, output, path_to_linkage):
+    linkage_matrix = np.load(path_to_linkage)
+    if num_clusters is not None:
+        click.echo(f'test test num clusters is {num_clusters}')
+        clustering = fcluster(linkage_matrix, num_clusters, 'maxclust')
+    elif max_distance is not None:
+        clustering = fcluster(linkage_matrix, max_distance, 'distance')
+    else:
+        click.echo('Must provide either a max distance or a set number of clusters (using -d or -n flags).')
+        return
     print(clustering)
+    clustering = fcluster_to_clustering(clustering)
+    print(clustering)
+    output_path = os.path.join(output, 'clusters')
+    save_clustering_as_directory_structure(submissions, clustering, output_path)
+    click.echo(f'Clusters have been saved in {output_path}')
 
 @cli.command(help='Draw a dendrogram for the linkage produced by the clustering,\nsaved in {output}/dendrogram.png')
 @click.option('--path-to-editdist', help='Path to edit_distances.npy file.', type=click.Path(exists=True), default='output/edit_distances.npy')
