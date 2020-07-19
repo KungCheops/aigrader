@@ -52,12 +52,44 @@ def linkage(method, path_to_editdist, output):
 
 @cli.command()
 @click.argument('submissions', type=click.Path(exists=True), nargs=-1, required=True)
-# @click.option('--output', help='Directory to save the result in.', type=click.Path(), default='output', show_default=True)
-@click.option('--function-match', '-f', is_flag=True, help='Match functions directly instead of comparing full source code ASTs.')
-@click.option('--scaffold', '-s', type=click.Path(), help='Provide a scaffold file to use for function name matching.')
-def abctest():
+@click.option('--path_to_editdist', help='Path to edit_distances.npy file.', type=click.Path(exists=True), default='output/edit_distances.npy')
+@click.option('--function-match', '-f', is_flag=True, help='Not Implemented. Match functions directly instead of comparing full source code ASTs.')
+@click.option('--scaffold', '-s', type=click.Path(), help='Not Implemented. Provide a scaffold file to use for function name matching.')
+def abctest(submissions, path_to_editdist, function_match, scaffold):
     click.echo('Test computed edit distance.')
-    # TODO implement
+    cont = True
+    edit_distances = np.load(path_to_editdist)
+    click.echo(edit_distances)
+
+    trials = 0
+    correct = 0
+
+    while cont:
+        trials += 1
+        a, b, c = sorted(np.random.choice(len(submissions), 3, replace=False))
+        dist_ab = edit_distances[a][b]
+        dist_ac = edit_distances[a][c]
+
+        click.echo(' Submission A '.center(80, '#') + '\n', nl=False)
+        with open(submissions[a]) as f:
+            for line in f:
+                click.echo(line, nl=False)
+        click.echo('\n' + ' Submission B '.center(80, '#') + '\n', nl=False)
+        with open(submissions[b]) as f:
+            for line in f:
+                click.echo(line, nl=False)
+        click.echo('\n' + ' Submission C '.center(80, '#') + '\n', nl=False)
+        with open(submissions[c]) as f:
+            for line in f:
+                click.echo(line, nl=False)
+        click.echo('#' * 80)
+
+        reply = click.confirm('A is closer to B than it is to C', default=True)
+        edit_dist_answer = dist_ab < dist_ac
+        if reply == edit_dist_answer:
+            correct += 1
+        cont = click.confirm('Continue?', default=True)
+    click.echo(f'Agreement = {100.0 * correct / trials:.2f}%')
 
 def _symlink_rel(src, dst):
     rel_path_src = os.path.relpath(src, os.path.dirname(dst))
