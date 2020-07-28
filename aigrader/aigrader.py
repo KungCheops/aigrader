@@ -3,7 +3,7 @@ import os, shutil
 
 import click
 import numpy as np
-from scipy.cluster.hierarchy import dendrogram as scipy_dendrogram, linkage, fcluster
+from scipy.cluster.hierarchy import dendrogram as scipy_dendrogram, linkage as scipy_linkage, fcluster
 from scipy.spatial.distance import squareform
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -41,7 +41,7 @@ def linkage(method, path_to_editdist, output):
     click.echo('Cluster submissions based on comparison file.')
     comparison_table = np.load(path_to_editdist)
     dists = squareform(comparison_table)
-    linkage_matrix = linkage(dists, method, optimal_ordering=True)
+    linkage_matrix = scipy_linkage(dists, method, optimal_ordering=True)
     os.makedirs(output, exist_ok=True)
     output_path = os.path.join(output, 'linkage.npy')
     np.save(output_path, linkage_matrix)
@@ -49,7 +49,7 @@ def linkage(method, path_to_editdist, output):
 
 @cli.command()
 @click.argument('submissions', type=click.Path(exists=True), nargs=-1, required=True)
-@click.option('--path_to_editdist', help='Path to edit_distances.npy file.', type=click.Path(exists=True), default='output/edit_distances.npy')
+@click.option('--path-to-editdist', help='Path to edit_distances.npy file.', type=click.Path(exists=True), default='output/edit_distances.npy')
 @click.option('--function-match', '-f', is_flag=True, help='Not Implemented. Match functions directly instead of comparing full source code ASTs.')
 @click.option('--scaffold', '-s', type=click.Path(), help='Not Implemented. Provide a scaffold file to use for function name matching.')
 def abctest(submissions, path_to_editdist, function_match, scaffold):
