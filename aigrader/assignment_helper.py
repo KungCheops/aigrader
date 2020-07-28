@@ -75,6 +75,11 @@ def parse_file(path, ignore_assignments):
     with open(path) as f:
         return ASTWrapper(ast.parse(f.read()), ignore_assignments=ignore_assignments)
 
+
+def print_progress(total, current):
+    print('{}/{}'.format(current, total))
+
+
 def calculate_edit_distance(submissions : List[ASTWrapper], match_functions : bool, scaffold : List[str] = None) -> np.array:
     N = len(submissions)
     table = np.array([[0] * N] * N, dtype=int)

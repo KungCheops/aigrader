@@ -1,26 +1,23 @@
 import glob
+import os, shutil
 
 import click
-import os, shutil
-from aigrader import assignment_helper as ah, human_in_the_loop as hloop
+import numpy as np
 from scipy.cluster.hierarchy import dendrogram as scipy_dendrogram, linkage, fcluster
 from scipy.spatial.distance import squareform
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-import numpy as np
+from aigrader import assignment_helper as ah, human_in_the_loop as hloop
 
 
 @click.group()
 def cli():
-    # click.echo('Hello World!')
     return
-
 
 @cli.command(help='Compute edit distance between all files provided. Result saved in {output}/edit_distances.npy')
 @click.argument('submissions', type=click.Path(exists=True), nargs=-1, required=True)
 @click.option('--output', help='Directory to save the result in.', type=click.Path(), default='output', show_default=True)
-# @click.option('--path-to-scaffold', help='Path to scaffold file. Ignored if scaffold flag is not set.', type=click.Path(), default='scaffold.py', show_default=True)
 @click.option('--function-match', '-f', is_flag=True, help='Match functions directly instead of comparing full source code ASTs.')
 @click.option('--scaffold', '-s', type=click.Path(), help='Provide a scaffold file to use for function name matching.')
 @click.option('--ignore-assignments', '-i', is_flag=True, help='Ignore all assignment statements when parsing the ASTs (may speed up computation speed).')
@@ -175,3 +172,7 @@ def dendrogram(path_to_editdist, path_to_linkage, output):
     output_path = os.path.join(output, 'dendrogram.png')
     plt.savefig(output_path)
     click.echo(f'Saved as \'{output_path}\'.')
+
+
+if __name__ == '__main__':
+    cli()
