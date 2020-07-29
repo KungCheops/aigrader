@@ -83,11 +83,14 @@ def print_progress(total, current):
 def calculate_edit_distance(submissions : List[ASTWrapper], match_functions : bool, scaffold : List[str] = None) -> np.array:
     N = len(submissions)
     table = np.array([[0] * N] * N, dtype=int)
+    total_computations = math.comb(N, 2)
+    progress = 0
     if not match_functions:
         for i in range(N):
             for j in range(i + 1, N):
                 table[j][i] = table[i][j] = get_distance(submissions[i], submissions[j])
-                print_progress(N*(N+1)//2, i*N+j-i)
+                progress += 1
+                print_progress(total_computations, progress)
     else:
         if scaffold is not None:
             # use scaffold
@@ -98,7 +101,8 @@ def calculate_edit_distance(submissions : List[ASTWrapper], match_functions : bo
                     for scaffold_function in scaffold:
                         total += get_distance(submission_functions[i][scaffold_function], submission_functions[j][scaffold_function])
                     table[j][i] = table[i][j] = total
-                    print_progress(N*(N+1)//2, i*N+j-i)
+                    progress += 1
+                    print_progress(total_computations, progress)
             return table
         else:
             # don't use scaffold, try all function combinations?
