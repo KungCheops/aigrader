@@ -27,7 +27,8 @@ First, cd into the `assignments` directory.
 Then run `aigrader editdist assignment-*`; this will compute the distance between all of the assignments within the directory, which is saved as `edit_distances.npy` within the folder `output`.
 
 > If computations are very slow you can try out the `-i` flag which ignores parts of the code.
-> If you have a scaffold file that you want to provide you can use `-f` to tell it to match functions and `-s` together with the path to the scaffold file.
+
+> If you have a scaffold file that you want to provide you can use `-f` to tell it to match functions and `-s` together with the path to the scaffold file, to tell it to use that scaffold file.
 
 When the distances have been computed the next step is to produce a linkage matrix.
 This is done with `aigrader linkage`. The linkage matrix is then saved in the output folder as `linkage.npy`.
