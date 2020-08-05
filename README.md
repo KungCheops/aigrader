@@ -18,6 +18,23 @@ cd aigrader
 make test
 ```
 
+### Alternatively
+
+```
+# clone repository
+git clone git@github.com:KungCheops/aigrader.git
+cd aigrader
+
+# create virtual environment
+virtualenv venv
+. venv/bin/activate
+
+# install aigrader
+pip install --editable .
+```
+
+The editable flag makes it so you can edit the code without reinstalling the application.
+
 ## Testing the installation
 
 This assumes you have a folder called `assignments`, containing files with the prefix `assignment-`.

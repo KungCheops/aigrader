@@ -22,6 +22,9 @@ def cli():
 @click.option('--scaffold', '-s', type=click.Path(), help='Provide a scaffold file to use for function name matching.')
 @click.option('--ignore-assignments', '-i', is_flag=True, help='Ignore all assignment statements when parsing the ASTs (may speed up computation speed).')
 def editdist(submissions, output, function_match, scaffold, ignore_assignments):
+    if not function_match and scaffold:
+        raise click.BadArgumentUsage('Must specify function match when using scaffold (using --function-match or -f).')
+
     click.echo('Computing edit distances.')
     submissions = [ah.parse_file(submission, ignore_assignments=ignore_assignments) for submission in submissions]
     if scaffold is not None:
