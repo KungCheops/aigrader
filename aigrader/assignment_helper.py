@@ -83,7 +83,7 @@ def print_progress(total, current):
 def calculate_edit_distance(submissions : List[ASTWrapper], match_functions : bool, scaffold : List[str] = None) -> np.array:
     N = len(submissions)
     table = np.array([[0] * N] * N, dtype=int)
-    total_computations = math.comb(N, 2)
+    total_computations = N*(N-1)//2
     progress = 0
     if not match_functions:
         for i in range(N):
