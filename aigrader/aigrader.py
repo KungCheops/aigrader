@@ -185,6 +185,56 @@ def dendrogram(path_to_editdist, path_to_linkage, output, clustermap):
     plt.savefig(output_path)
     click.echo(f'Saved as \'{output_path}\'.')
 
+def get_cluster_members(cluster_number, path_to_clusters):
+    cluster_members = np.array([], dtype=int)
+    for f in os.listdir(os.path.join(path_to_clusters, str(cluster_number))):
+        cluster_members = np.append(cluster_members, int(f))
+    return cluster_members
+
+def find_representative(comparison_table, cluster_members):
+    submission_comparison = comparison_table[cluster_members][:,cluster_members]
+    click.echo(submission_comparison)
+    distances = submission_comparison.sum(axis=0)
+    ix_with_min = distances.argmin()
+    return cluster_members[ix_with_min]
+
+def find_outlier(comparison_table, cluster_members):
+    submission_comparison = comparison_table[cluster_members][:,cluster_members]
+    click.echo(submission_comparison)
+    distances = submission_comparison.sum(axis=0)
+    ix_with_max = distances.argmax()
+    return cluster_members[ix_with_max]
+
+def find_neighbor(comparison_table, cluster_members, cluster_non_members):
+    submission_comparison = comparison_table[cluster_members][:,cluster_non_members]
+    click.echo(submission_comparison)
+    distances = submission_comparison.sum(axis=0)
+    ix_with_min = distances.argmin()
+    return cluster_non_members[ix_with_min]
+
+@cli.command(help='Print some statistics and information about a certain cluster')
+@click.argument('cluster-number', default=0)
+@click.option('--path-to-clusters', help='Path to cluster directory', type=click.Path(exists=True), default='output/clusters')
+@click.option('--path-to-filenames', help='Path to filenames.npy file.', type=click.Path(exists=True), default='output/filenames.npy')
+@click.option('--path-to-editdist', help='Path to edit_distances.npy file.', type=click.Path(exists=True), default='output/edit_distances.npy')
+def stats(cluster_number, path_to_clusters, path_to_filenames, path_to_editdist):
+    cluster_number = int(cluster_number)
+    comparison_table = np.load(path_to_editdist)
+    click.echo(comparison_table)
+    filenames = np.load(path_to_filenames)
+    cluster_members = get_cluster_members(cluster_number, path_to_clusters)
+    all_members = np.arange(len(filenames))
+    cluster_non_members = np.setdiff1d(all_members, cluster_members)
+    cluster_median = find_representative(comparison_table, cluster_members)
+    cluster_outlier = find_outlier(comparison_table, cluster_members)
+    cluster_neighbor = find_neighbor(comparison_table, cluster_members, cluster_non_members)
+    click.echo(' Cluster representative: '.center(80, '#') + '\n')
+    hloop.print_submission(filenames[cluster_median])
+    click.echo(' Cluster outlier: '.center(80, '#') + '\n')
+    hloop.print_submission(filenames[cluster_outlier])
+    click.echo(' Cluster neighbor: '.center(80, '#') + '\n')
+    hloop.print_submission(filenames[cluster_neighbor])
+    click.echo('#' * 80)
 
 if __name__ == '__main__':
     cli()
