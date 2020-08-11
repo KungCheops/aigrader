@@ -73,7 +73,7 @@ def get_tree_members(tree):
     try:
         for item in tree:
             if isinstance(item, tuple):
-                gather.extend(get_tree_members(item))            
+                gather.extend(get_tree_members(item))
             else:
                 gather.append(item)
     except:
