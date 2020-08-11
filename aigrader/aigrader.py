@@ -226,10 +226,13 @@ def stats(cluster_number, path_to_clusters, path_to_filenames, path_to_editdist)
     cluster_neighbor = find_neighbor(comparison_table, cluster_members, cluster_non_members)
     click.echo(' Cluster representative: '.center(80, '#') + '\n')
     hloop.print_submission(filenames[cluster_median])
+    click.echo()
     click.echo(' Cluster outlier: '.center(80, '#') + '\n')
     hloop.print_submission(filenames[cluster_outlier])
+    click.echo()
     click.echo(' Cluster neighbor: '.center(80, '#') + '\n')
     hloop.print_submission(filenames[cluster_neighbor])
+    click.echo()
     click.echo('#' * 80)
 
 if __name__ == '__main__':

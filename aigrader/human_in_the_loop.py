@@ -4,7 +4,7 @@ import click
 def print_submission(submission):
     with open(submission) as f:
         for line in f:
-            print(line, end='')
+            click.echo(line, nl=False)
 
 def find_representative(comparison_table, cluster):
     submission_comparison = comparison_table[cluster][:,cluster]
@@ -43,7 +43,7 @@ def print_tree(tree, highlights=[[]], depth=0):
             if tree in nodes:
                 print_color = color
                 break
-        print(f'{"  " * depth}{print_color}{tree: 2d}{text_black}')
+        click.echo(f'{"  " * depth}{print_color}{tree: 2d}{text_black}')
         return
     else:
         l_tree, r_tree = tree
@@ -52,16 +52,16 @@ def print_tree(tree, highlights=[[]], depth=0):
         return
 
 def pprint_tree(tree, file=None, _prefix="", _last=True):
-    print(_prefix, '`- ' if _last else '|- ', sep='', end='')
+    click.echo(_prefix, '`- ' if _last else '|- ', sep='', nl=False)
     if not isinstance(tree, tuple):
         print_color = text_black
         for color, nodes in zip(print_tree_colors, highlights):
             if tree in nodes:
                 print_color = color
                 break
-        print(f'{print_color}{tree: 2d}{text_black}')
+        click.echo(f'{print_color}{tree: 2d}{text_black}')
     else:
-        print('')
+        click.echo('')
         _prefix += '   ' if _last else '|  '
         l_tree, r_tree = tree
         print_tree(l_tree, highlights, _prefix, False)
@@ -92,15 +92,17 @@ def try_split(submissions, comparison_table, tree):
     l_rep = find_representative(comparison_table, l_members)
     r_rep = find_representative(comparison_table, r_members)
     # TODO Implement pagination. Should make it easier for the user to understand what's going on.
-    print(' Tree '.center(64, '#') + '\n')
+    click.echo(' Tree '.center(64, '#') + '\n')
     print_tree(tree, [[l_rep], get_tree_members(l_tree), [r_rep], get_tree_members(r_tree)])
-    print(f'\nComparing submission {l_rep} (red submission in green tree) with submission {r_rep} (yellow submission in blue tree).\n')
-    print(' Code '.center(64, '#') + '\n')
-    print(f' Submission {l_rep} '.center(64, '#') + '\n')
+    click.echo(f'\nComparing submission {l_rep} (red submission in green tree) with submission {r_rep} (yellow submission in blue tree).\n')
+    click.echo(' Code '.center(64, '#') + '\n')
+    click.echo(f' Submission {l_rep} '.center(64, '#') + '\n')
     print_submission(submissions[l_rep])
-    print(f' Submission {r_rep} '.center(64, '#') + '\n')
+    click.echo()
+    click.echo(f' Submission {r_rep} '.center(64, '#') + '\n')
     print_submission(submissions[r_rep])
-    print('#' * 64 + '\n')
+    click.echo()
+    click.echo('#' * 64 + '\n')
     similar = click.confirm('Are these to submissions similar enough to be given the same comments?\n')
     return not similar
 
