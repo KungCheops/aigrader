@@ -193,21 +193,18 @@ def get_cluster_members(cluster_number, path_to_clusters):
 
 def find_representative(comparison_table, cluster_members):
     submission_comparison = comparison_table[cluster_members][:,cluster_members]
-    click.echo(submission_comparison)
     distances = submission_comparison.sum(axis=0)
     ix_with_min = distances.argmin()
     return cluster_members[ix_with_min]
 
 def find_outlier(comparison_table, cluster_members):
     submission_comparison = comparison_table[cluster_members][:,cluster_members]
-    click.echo(submission_comparison)
     distances = submission_comparison.sum(axis=0)
     ix_with_max = distances.argmax()
     return cluster_members[ix_with_max]
 
 def find_neighbor(comparison_table, cluster_members, cluster_non_members):
     submission_comparison = comparison_table[cluster_members][:,cluster_non_members]
-    click.echo(submission_comparison)
     distances = submission_comparison.sum(axis=0)
     ix_with_min = distances.argmin()
     return cluster_non_members[ix_with_min]
@@ -220,7 +217,6 @@ def find_neighbor(comparison_table, cluster_members, cluster_non_members):
 def stats(cluster_number, path_to_clusters, path_to_filenames, path_to_editdist):
     cluster_number = int(cluster_number)
     comparison_table = np.load(path_to_editdist)
-    click.echo(comparison_table)
     filenames = np.load(path_to_filenames)
     cluster_members = get_cluster_members(cluster_number, path_to_clusters)
     all_members = np.arange(len(filenames))
