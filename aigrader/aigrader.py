@@ -26,6 +26,10 @@ def editdist(submissions, output, function_match, scaffold, ignore_assignments):
         raise click.BadArgumentUsage('Must specify function match when using scaffold (using --function-match or -f).')
 
     click.echo('Computing edit distances.')
+
+    output_path = os.path.join(output, 'filenames.npy')
+    np.save(output_path, submissions)
+
     submissions = [ah.parse_file(submission, ignore_assignments=ignore_assignments) for submission in submissions]
     if scaffold is not None:
         scaffold = ah.find_functions(ah.parse_file(scaffold, ignore_assignments=True))
@@ -34,6 +38,7 @@ def editdist(submissions, output, function_match, scaffold, ignore_assignments):
     os.makedirs(output, exist_ok=True)
     output_path = os.path.join(output, 'edit_distances.npy')
     np.save(output_path, edit_distances)
+
     click.echo(f'Saved as \'{output_path}\'.')
 
 @cli.command(help='Create linkage matrix for submissions based on edit distance file, saved in {output}/linkage.npy.')
@@ -51,15 +56,16 @@ def linkage(method, path_to_editdist, output):
     click.echo(f'Saved as \'{output_path}\'.')
 
 @cli.command()
-@click.argument('submissions', type=click.Path(exists=True), nargs=-1, required=True)
+@click.option('--path-to-filenames', help='Path to filenames.npy file.', type=click.Path(exists=True), default='output/filenames.npy')
 @click.option('--path-to-editdist', help='Path to edit_distances.npy file.', type=click.Path(exists=True), default='output/edit_distances.npy')
 @click.option('--function-match', '-f', is_flag=True, help='Not Implemented. Match functions directly instead of comparing full source code ASTs.')
 @click.option('--scaffold', '-s', type=click.Path(), help='Not Implemented. Provide a scaffold file to use for function name matching.')
-def abctest(submissions, path_to_editdist, function_match, scaffold):
+def abctest(path_to_filenames, path_to_editdist, function_match, scaffold):
     click.echo('Test computed edit distance.')
     cont = True
     edit_distances = np.load(path_to_editdist)
     click.echo(edit_distances)
+    submissions = np.load(path_to_filenames)
 
     trials = 0
     correct = 0
@@ -109,16 +115,17 @@ def save_clustering_as_directory_structure(submissions, clustering, output_path)
         os.mkdir(cluster_dir_path)
         for file_id in file_ids:
             submission_name = submissions[file_id]
-            _symlink_rel(submission_name, os.path.join(cluster_dir_path, submission_name))
+            _symlink_rel(submission_name, os.path.join(cluster_dir_path, str(file_id)))
 
 @cli.command(help='Create cluster groups from linkage using a human-in-the-loop method.')
-@click.argument('submissions', type=click.Path(exists=True), nargs=-1, required=True)
 @click.option('--output', help='Directory to save the result in.', type=click.Path(), default='output', show_default=True)
+@click.option('--path-to-filenames', help='Path to filenames.npy file.', type=click.Path(exists=True), default='output/filenames.npy')
 @click.option('--path-to-editdist', help='Path to edit_distances.npy file.', type=click.Path(exists=True), default='output/edit_distances.npy')
 @click.option('--path-to-linkage', help='Path to linkage.npy file.', type=click.Path(exists=True), default='output/linkage.npy')
-def mclust(submissions, output, path_to_editdist, path_to_linkage):
+def mclust(output, path_to_filenames, path_to_editdist, path_to_linkage):
     comparison_table = np.load(path_to_editdist)
     linkage_matrix = np.load(path_to_linkage)
+    submissions = np.load(path_to_filenames)
     tree = hloop.create_tree(linkage_matrix, len(submissions))
     clustering = hloop.split_tree(submissions, comparison_table, tree)
     output_path = os.path.join(output, 'clusters')
@@ -137,25 +144,24 @@ def fcluster_to_clustering(fcluster):
     return clusters
 
 @cli.command(help='Create cluster groups from linkage using either a max distance or a max number of clusters.')
-@click.argument('submissions', type=click.Path(exists=True), nargs=-1, required=True)
 @click.option('--max-distance', '-d', help='Set a maximum distance between two clusters.', type=float)
 @click.option('--num-clusters', '-n', help='Set the number of preferred clusters (overrides --max-distances).', type=int)
 @click.option('--output', help='Directory to save the result in.', type=click.Path(), default='output', show_default=True)
+@click.option('--path-to-filenames', help='Path to filenames.npy file.', type=click.Path(exists=True), default='output/filenames.npy')
 @click.option('--path-to-linkage', help='Path to linkage.npy file.', type=click.Path(exists=True), default='output/linkage.npy')
-def cluster(submissions, max_distance, num_clusters, output, path_to_linkage):
+def cluster(max_distance, num_clusters, output, path_to_filenames, path_to_linkage):
     linkage_matrix = np.load(path_to_linkage)
     if num_clusters is not None:
-        click.echo(f'test test num clusters is {num_clusters}')
         clustering = fcluster(linkage_matrix, num_clusters, 'maxclust')
     elif max_distance is not None:
         clustering = fcluster(linkage_matrix, max_distance, 'distance')
     else:
         click.echo('Must provide either a max distance or a set number of clusters (using -d or -n flags).')
         return
-    print(clustering)
     clustering = fcluster_to_clustering(clustering)
-    print(clustering)
+    print(f'Clusters: {clustering}')
     output_path = os.path.join(output, 'clusters')
+    submissions = np.load(path_to_filenames)
     save_clustering_as_directory_structure(submissions, clustering, output_path)
     click.echo(f'Clusters have been saved in {output_path}')
 
