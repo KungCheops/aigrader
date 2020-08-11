@@ -95,17 +95,20 @@ def calculate_edit_distance(submissions : List[ASTWrapper], match_functions : bo
         if scaffold is not None:
             # use scaffold
             submission_functions = [find_functions(submission, scaffold) for submission in submissions]
+            empty_ast = ASTWrapper(ast.parse(''))
             for i in range(N):
                 for j in range(i + 1, N):
                     total = 0
                     for scaffold_function in scaffold:
                         if scaffold_function not in submission_functions[i]:
                             print(f"scaffold function {scaffold_function} not found in {i+1}-th submission")
+                            total += get_distance(empty_ast, submission_functions[j][scaffold_function])
                             continue
                         if scaffold_function not in submission_functions[j]:
                             print(f"scaffold function {scaffold_function} not found in {j+1}-th submission")
+                            total += get_distance(submission_functions[i][scaffold_function], empty_ast)
                             continue
-                        total += get_distance(submission_functions[i][scaffold_function], submission_functions[j][scaffold_function])
+                        total += get_distance(submission_functions[i][scaffold_function], empty_ast)
                     table[j][i] = table[i][j] = total
                     progress += 1
                     print_progress(total_computations, progress)
