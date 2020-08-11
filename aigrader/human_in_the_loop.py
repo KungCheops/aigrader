@@ -1,4 +1,5 @@
 import astor
+import click
 
 def print_submission(submission):
     with open(submission) as f:
@@ -90,19 +91,18 @@ def try_split(submissions, comparison_table, tree):
     r_members = get_tree_members(r_tree)
     l_rep = find_representative(comparison_table, l_members)
     r_rep = find_representative(comparison_table, r_members)
+    # TODO Implement pagination. Should make it easier for the user to understand what's going on.
     print(' Tree '.center(64, '#') + '\n')
     print_tree(tree, [[l_rep], get_tree_members(l_tree), [r_rep], get_tree_members(r_tree)])
+    print(f'\nComparing submission {l_rep} (red submission in green tree) with submission {r_rep} (yellow submission in blue tree).\n')
     print(' Code '.center(64, '#') + '\n')
     print(f' Submission {l_rep} '.center(64, '#') + '\n')
     print_submission(submissions[l_rep])
     print(f' Submission {r_rep} '.center(64, '#') + '\n')
     print_submission(submissions[r_rep])
     print('#' * 64 + '\n')
-    similar = input('Are these to submissions similar enough to be given the same comments?\n')
-    if similar.lower() in ['y', 'yes', 't', 'true']:
-        return False
-    else:
-        return True
+    similar = click.confirm('Are these to submissions similar enough to be given the same comments?\n')
+    return not similar
 
 def split_tree(submissions, comparison_table, tree):
     if try_split(submissions, comparison_table, tree):
