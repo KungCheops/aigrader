@@ -169,15 +169,18 @@ def cluster(max_distance, num_clusters, output, path_to_filenames, path_to_linka
 @click.option('--path-to-editdist', help='Path to edit_distances.npy file.', type=click.Path(exists=True), default='output/edit_distances.npy')
 @click.option('--path-to-linkage', help='Path to linkage.npy file.', type=click.Path(exists=True), default='output/linkage.npy')
 @click.option('--output', help='Directory to save the result in.', type=click.Path(), default='output')
-def dendrogram(path_to_editdist, path_to_linkage, output):
+@click.option('--clustermap', '-c', help='Generate the dendrogram together with a clustermap (see seaborn.clustermap for documentation).', is_flag=True, default=False)
+def dendrogram(path_to_editdist, path_to_linkage, output, clustermap):
     click.echo(f'Draw a dendrogram for the linkage produced by the clustering.')
     linkage_matrix = np.load(path_to_linkage)
     comparison_table = np.load(path_to_editdist)
     plt.figure()
-    scipy_dendrogram(linkage_matrix)
-    # sns.clustermap(comparison_table,
-    #                row_linkage=linkage_matrix,
-    #                col_linkage=linkage_matrix)
+    if not clustermap:
+        scipy_dendrogram(linkage_matrix)
+    else:
+        sns.clustermap(comparison_table,
+                       row_linkage=linkage_matrix,
+                       col_linkage=linkage_matrix)
     output_path = os.path.join(output, 'dendrogram.png')
     plt.savefig(output_path)
     click.echo(f'Saved as \'{output_path}\'.')
