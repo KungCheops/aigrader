@@ -204,6 +204,8 @@ def find_outlier(comparison_table, cluster_members):
     return cluster_members[ix_with_max]
 
 def find_neighbor(comparison_table, cluster_members, cluster_non_members):
+    if len(cluster_non_members) == 0:
+        return None
     submission_comparison = comparison_table[cluster_members][:,cluster_non_members]
     distances = submission_comparison.sum(axis=0)
     ix_with_min = distances.argmin()
@@ -219,6 +221,8 @@ def stats(cluster_number, path_to_clusters, path_to_filenames, path_to_editdist)
     comparison_table = np.load(path_to_editdist)
     filenames = np.load(path_to_filenames)
     cluster_members = get_cluster_members(cluster_number, path_to_clusters)
+    if len(cluster_members) <= 2:
+        raise click.ClickException('Cluster size must be >=3.')
     all_members = np.arange(len(filenames))
     cluster_non_members = np.setdiff1d(all_members, cluster_members)
     cluster_median = find_representative(comparison_table, cluster_members)
@@ -230,9 +234,10 @@ def stats(cluster_number, path_to_clusters, path_to_filenames, path_to_editdist)
     click.echo(' Cluster outlier: '.center(80, '#') + '\n')
     hloop.print_submission(filenames[cluster_outlier])
     click.echo()
-    click.echo(' Cluster neighbor: '.center(80, '#') + '\n')
-    hloop.print_submission(filenames[cluster_neighbor])
-    click.echo()
+    if cluster_neighbor is not None:
+        click.echo(' Cluster neighbor: '.center(80, '#') + '\n')
+        hloop.print_submission(filenames[cluster_neighbor])
+        click.echo()
     click.echo('#' * 80)
 
 if __name__ == '__main__':
