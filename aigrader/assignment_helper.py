@@ -71,6 +71,7 @@ class Assignment:
         self.submissions = submissions
         self.comparison_table = comparison_table
 
+
 def parse_file(path, ignore_assignments):
     with open(path) as f:
         return ASTWrapper(ast.parse(f.read()), ignore_assignments=ignore_assignments)
@@ -80,7 +81,7 @@ def print_progress(total, current):
     print('{}/{}'.format(current, total))
 
 
-def calculate_edit_distance(submissions : List[ASTWrapper], match_functions : bool, scaffold : List[str] = None) -> np.array:
+def calculate_edit_distance(submissions : List[ASTWrapper], match_functions : bool, scaffold : List[str] = None, submission_names = None) -> np.array:
     N = len(submissions)
     table = np.array([[0] * N] * N, dtype=int)
     total_computations = N*(N-1)//2
@@ -101,11 +102,17 @@ def calculate_edit_distance(submissions : List[ASTWrapper], match_functions : bo
                     total = 0
                     for scaffold_function in scaffold:
                         if scaffold_function not in submission_functions[i]:
-                            print(f"scaffold function {scaffold_function} not found in {i+1}-th submission")
+                            name = f'{i+1}-th'
+                            if submission_names:
+                                name = submission_names[i]
+                            print(f"scaffold function {scaffold_function} not found in {name} submission")
                             total += get_distance(empty_ast, submission_functions[j][scaffold_function])
                             continue
                         if scaffold_function not in submission_functions[j]:
-                            print(f"scaffold function {scaffold_function} not found in {j+1}-th submission")
+                            name = f'{j+1}-th'
+                            if submission_names:
+                                name = submission_names[j]
+                            print(f"scaffold function {scaffold_function} not found in {name} submission")
                             total += get_distance(submission_functions[i][scaffold_function], empty_ast)
                             continue
                         total += get_distance(submission_functions[i][scaffold_function], empty_ast)
