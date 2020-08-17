@@ -37,17 +37,18 @@ The editable flag makes it so you can edit the code without reinstalling the app
 
 ## Testing the installation
 
-This assumes you have a folder called `assignments`, containing files with the prefix `assignment-`.
+This documentation assumes you have a folder called `assignments` which contains python files along with `scaffold.py`. The `scaffold.py` is a special file used for defining scaffolds. The scaffolds are used for collecting functions and calculation of edit distances among functions.
 
-First, cd into the `assignments` directory.
+Run following command to run full analysis of all submissions for generating edit distance, linkage and clustering:
 
-Then run `aigrader editdist assignment-*`; this will compute the distance between all of the assignments within the directory, which is saved as `edit_distances.npy` within the folder `output`.
+```
+> aigrader.sh assignments
+```
 
-> If computations are very slow you can try out the `-i` flag which ignores parts of the code.
+The `aigrader.sh` is nothing more than sequence of subtle commands of `aigrader`. The results such as edit distance and clustering informations are are saved in `aigrader/output/` directory.
 
-> If you have a scaffold file that you want to provide you can use `-f` to tell it to match functions and `-s` together with the path to the scaffold file, to tell it to use that scaffold file.
+For detailed information run:
 
-When the distances have been computed the next step is to produce a linkage matrix.
-This is done with `aigrader linkage`. The linkage matrix is then saved in the output folder as `linkage.npy`.
-
-Lastly, you can run `aigrader cluster assignment-*` with either the `-n` flag to provide the maximum number of clusters, or the `-d` flag to determine the maximum distance between the members within the clusters.
+```
+> aigrader --help
+```
