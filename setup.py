@@ -46,6 +46,9 @@ setup(
         'zss @ https://github.com/melug/zhang-shasha/tarball/master#egg=zss',
     ],
     setup_requires=['pytest-runner',],
+    scripts=[
+        'scripts/aigrader.sh'
+    ],
     tests_require=['pytest',],
     entry_points={
         'console_scripts': [
