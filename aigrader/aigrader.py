@@ -211,13 +211,15 @@ def find_representative(comparison_table, cluster_members):
     submission_comparison = comparison_table[cluster_members][:,cluster_members]
     distances = submission_comparison.sum(axis=0)
     ix_with_min = distances.argmin()
-    return cluster_members[ix_with_min]
+    average_dist = distances[ix_with_min] / (len(cluster_members) - 1)
+    return cluster_members[ix_with_min], average_dist
 
 def find_outlier(comparison_table, cluster_members):
     submission_comparison = comparison_table[cluster_members][:,cluster_members]
     distances = submission_comparison.sum(axis=0)
     ix_with_max = distances.argmax()
-    return cluster_members[ix_with_max]
+    average_dist = distances[ix_with_max] / (len(cluster_members) - 1)
+    return cluster_members[ix_with_max], average_dist
 
 def find_neighbor(comparison_table, cluster_members, cluster_non_members):
     if len(cluster_non_members) == 0:
@@ -225,7 +227,8 @@ def find_neighbor(comparison_table, cluster_members, cluster_non_members):
     submission_comparison = comparison_table[cluster_members][:,cluster_non_members]
     distances = submission_comparison.sum(axis=0)
     ix_with_min = distances.argmin()
-    return cluster_non_members[ix_with_min]
+    average_dist = distances[ix_with_min] / len(cluster_members)
+    return cluster_non_members[ix_with_min], average_dist
 
 @cli.command(help='Print some statistics and information about a certain cluster')
 @click.argument('path_to_submissions_directory', nargs=1, default='.', type=click.Path(exists=True))
@@ -243,9 +246,9 @@ def stats(path_to_submissions_directory, cluster_number):
         raise click.ClickException('Cluster size must be >=3.')
     all_members = np.arange(len(submissions))
     cluster_non_members = np.setdiff1d(all_members, cluster_members)
-    cluster_median = find_representative(comparison_table, cluster_members)
-    cluster_outlier = find_outlier(comparison_table, cluster_members)
-    cluster_neighbor = find_neighbor(comparison_table, cluster_members, cluster_non_members)
+    cluster_median, cluster_median_avg_dist = find_representative(comparison_table, cluster_members)
+    cluster_outlier, cluster_outlier_avg_dist = find_outlier(comparison_table, cluster_members)
+    cluster_neighbor, cluster_neighbor_avg_dist = find_neighbor(comparison_table, cluster_members, cluster_non_members)
     click.echo(' Cluster representative: '.center(80, '#') + '\n')
     hloop.print_submission(submissions[cluster_median])
     click.echo()
