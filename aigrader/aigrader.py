@@ -232,9 +232,8 @@ def find_neighbor(comparison_table, cluster_members, cluster_non_members):
 
 @cli.command(help='Print some statistics and information about a certain cluster')
 @click.argument('path_to_submissions_directory', nargs=1, default='.', type=click.Path(exists=True))
-@click.option('--cluster-number', '-c', type=int, default=0)
+@click.option('--cluster-number', '-c')
 def stats(path_to_submissions_directory, cluster_number):
-    cluster_number = cluster_number
     output_path = os.path.join(path_to_submissions_directory, 'output')
     submissions = get_submissions(path_to_submissions_directory)
     click.echo('opening: '+os.path.join(output_path, EDITDISTANCE_NAME))
