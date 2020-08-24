@@ -201,12 +201,6 @@ def dendrogram(path_to_submissions_directory, clustermap):
     plt.savefig(output_chart_path)
     click.echo(f'Saved as \'{output_chart_path}\'.')
 
-def get_cluster_members(cluster_number, path_to_clusters):
-    cluster_members = np.array([], dtype=int)
-    for f in os.listdir(os.path.join(path_to_clusters, str(cluster_number))):
-        cluster_members = np.append(cluster_members, int(f))
-    return cluster_members
-
 def find_representative(comparison_table, cluster_members):
     submission_comparison = comparison_table[cluster_members][:,cluster_members]
     distances = submission_comparison.sum(axis=0)
@@ -230,9 +224,22 @@ def find_neighbor(comparison_table, cluster_members, cluster_non_members):
     average_dist = distances[ix_with_min] / len(cluster_members)
     return cluster_non_members[ix_with_min], average_dist
 
+def compute_all_average_distances(comparison_table, clusters):
+    distances = {}
+    for i in range(len(clusters)):
+        for j in range(i + 1, len(clusters)):
+            distances[i, j] = compute_average_distance(comparison_table, clusters[i], clusters[j])
+    return distances
+
+def compute_average_distance(comparison_table, cluster_members_1, cluster_members_2):
+    submission_comparison = comparison_table[cluster_members_1][:,cluster_members_2]
+    distances = np.sum(submission_comparison)
+    average_dist = distances / (len(submission_comparison) * len(submission_comparison[0]))
+    return average_dist
+
 @cli.command(help='Print some statistics and information about a certain cluster')
 @click.argument('path_to_submissions_directory', nargs=1, default='.', type=click.Path(exists=True))
-@click.option('--cluster-number', '-c')
+@click.option('--cluster-number', '-c', type=int, default=0)
 def stats(path_to_submissions_directory, cluster_number):
     output_path = os.path.join(path_to_submissions_directory, 'output')
     submissions = get_submissions(path_to_submissions_directory)
@@ -240,25 +247,34 @@ def stats(path_to_submissions_directory, cluster_number):
     comparison_table = np.load(os.path.join(output_path, EDITDISTANCE_NAME))
     path_to_clusters = os.path.join(output_path, 'clusters')
 
-    cluster_members = get_cluster_members(cluster_number, path_to_clusters)
-    if len(cluster_members) <= 2:
+    clusters = {}
+    for root, folders, files in os.walk(path_to_clusters):
+        try:
+            root_int = int(root.split('/')[-1])
+        except:
+            continue
+        clusters[root_int] = sorted([int(f) for f in files])
+    click.echo(clusters)
+    click.echo(compute_all_average_distances(comparison_table, clusters))
+
+    if len(clusters[cluster_number]) <= 2:
         raise click.ClickException('Cluster size must be >=3.')
     all_members = np.arange(len(submissions))
-    cluster_non_members = np.setdiff1d(all_members, cluster_members)
-    cluster_median, cluster_median_avg_dist = find_representative(comparison_table, cluster_members)
-    cluster_outlier, cluster_outlier_avg_dist = find_outlier(comparison_table, cluster_members)
-    cluster_neighbor, cluster_neighbor_avg_dist = find_neighbor(comparison_table, cluster_members, cluster_non_members)
+    cluster_non_members = np.setdiff1d(all_members, clusters[cluster_number])
+    cluster_median, cluster_median_avg_dist = find_representative(comparison_table, clusters[cluster_number])
+    cluster_outlier, cluster_outlier_avg_dist = find_outlier(comparison_table, clusters[cluster_number])
+    cluster_neighbor, cluster_neighbor_avg_dist = find_neighbor(comparison_table, clusters[cluster_number], cluster_non_members)
     click.echo(' Cluster representative: '.center(80, '#') + '\n')
-    click.echo(' File name: {} Average distance: {} '.format(basename(submissions[cluster_median]), cluster_median_avg_dist))
+    click.echo('File name: {}\nAverage distance: {}\n'.format(basename(submissions[cluster_median]), cluster_median_avg_dist))
     hloop.print_submission(submissions[cluster_median])
     click.echo()
-    click.echo(' Cluster outlier: '.center(80, '#') + '\n')
-    click.echo(' File name: {} Average distance: {} '.format(basename(submissions[cluster_outlier]), cluster_outlier_avg_dist))
+    click.echo(' Most distant cluster member: '.center(80, '#') + '\n')
+    click.echo('File name: {}\nAverage distance: {}\n'.format(basename(submissions[cluster_outlier]), cluster_outlier_avg_dist))
     hloop.print_submission(submissions[cluster_outlier])
     click.echo()
     if cluster_neighbor is not None:
-        click.echo(' Cluster neighbor: '.center(80, '#') + '\n')
-        click.echo(' File name: {} Average distance to the members of the cluster: {} '.format(basename(submissions[cluster_neighbor]), cluster_neighbor_avg_dist))
+        click.echo(' Non cluster member closest to the cluster: '.center(80, '#') + '\n')
+        click.echo('File name: {}\nAverage distance: {}\n'.format(basename(submissions[cluster_neighbor]), cluster_neighbor_avg_dist))
         hloop.print_submission(submissions[cluster_neighbor])
         click.echo()
     click.echo('#' * 80)
