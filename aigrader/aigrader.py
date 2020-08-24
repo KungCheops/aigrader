@@ -243,7 +243,7 @@ def compute_average_distance(comparison_table, cluster_members_1, cluster_member
 def stats(path_to_submissions_directory, cluster_number):
     output_path = os.path.join(path_to_submissions_directory, 'output')
     submissions = get_submissions(path_to_submissions_directory)
-    click.echo('opening: '+os.path.join(output_path, EDITDISTANCE_NAME))
+    click.echo('opening: ' + os.path.join(output_path, EDITDISTANCE_NAME))
     comparison_table = np.load(os.path.join(output_path, EDITDISTANCE_NAME))
     path_to_clusters = os.path.join(output_path, 'clusters')
 
