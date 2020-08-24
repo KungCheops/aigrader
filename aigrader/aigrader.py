@@ -194,9 +194,11 @@ def dendrogram(path_to_submissions_directory, clustermap):
     if not clustermap:
         scipy_dendrogram(linkage_matrix)
     else:
+        sns.set(font_scale=.5)
         sns.clustermap(edit_distances,
                        row_linkage=linkage_matrix,
-                       col_linkage=linkage_matrix)
+                       col_linkage=linkage_matrix,
+                       annot_kws={"size": 16})
     output_chart_path = os.path.join(output_path, 'dendrogram.png')
     plt.savefig(output_chart_path)
     click.echo(f'Saved as \'{output_chart_path}\'.')
@@ -230,6 +232,7 @@ def compute_all_average_distances(comparison_table, clusters):
         for j in range(i + 1, len(clusters)):
             distances[i, j] = compute_average_distance(comparison_table, clusters[i], clusters[j])
     return distances
+
 
 def compute_average_distance(comparison_table, cluster_members_1, cluster_members_2):
     submission_comparison = comparison_table[cluster_members_1][:,cluster_members_2]
