@@ -48,7 +48,7 @@ def editdist(path_to_submissions_directory, function_match, ignore_assignments):
     output_file = os.path.join(output_directory, EDITDISTANCE_NAME)
     submission_asts = [ah.parse_file(submission, ignore_assignments=ignore_assignments) for submission in submissions]
     scaffold_path = os.path.join(path_to_submissions_directory, SCAFFOLD_NAME)
-    scaffold = ah.find_functions(ah.parse_file(scaffold_path, ignore_assignments=True))
+    scaffold = ah.find_functions(ah.parse_file(scaffold_path, ignore_assignments=ignore_assignments))
     edit_distances = ah.calculate_edit_distance(submission_asts,
                                                 function_match,
                                                 scaffold,
