@@ -43,6 +43,7 @@ def get_submissions(path):
 def editdist(path_to_submissions_directory, function_match, ignore_assignments):
     click.echo('Computing edit distances.')
     submissions = get_submissions(path_to_submissions_directory)
+    submissions = [submissions[0], submissions[17]]
     output_directory = get_output_directory(submissions)
     os.makedirs(output_directory, exist_ok=True)
     output_file = os.path.join(output_directory, EDITDISTANCE_NAME)
@@ -118,7 +119,7 @@ def _symlink_rel(src, dst):
     rel_path_src = os.path.relpath(src, os.path.dirname(dst))
     os.symlink(rel_path_src, dst)
 
-def save_clustering_as_directory_structure(submissions, clustering, output_path):
+def save_clustering_as_directory_structure(submissions, clustering, output_path, comparison_table):
     if os.path.isdir(output_path):
         shutil.rmtree(output_path)
     os.mkdir(output_path)
@@ -130,6 +131,10 @@ def save_clustering_as_directory_structure(submissions, clustering, output_path)
     for index, file_ids in enumerate(clustering):
         cluster_dir_path = os.path.join(output_path, f'{index}'.zfill(zero_padding))
         os.mkdir(cluster_dir_path)
+        with open(os.path.join(cluster_dir_path, "table.csv"), "w") as f:
+            f.write(''.join('{:>4}'.format(file_id) for file_id in [0]+file_ids)+'\n')
+            for file_id, row in zip(file_ids, comparison_table[file_ids,:][:,file_ids]):
+                f.write(''.join('{:>4}'.format(n) for n in [file_id]+list(row))+'\n')
         for file_id in file_ids:
             submission_name = submissions[file_id]
             _symlink_rel(submission_name, os.path.join(cluster_dir_path, str(file_id)))
@@ -145,7 +150,7 @@ def mclust(path_to_submissions_directory):
     clustering = hloop.split_tree(submissions, comparison_table, tree)
     click.echo(f'Clusters: {clustering}')
     output_cluster_path = os.path.join(output_path, 'clusters-human-in-the-loop')
-    save_clustering_as_directory_structure(submissions, clustering, output_cluster_path)
+    save_clustering_as_directory_structure(submissions, clustering, output_cluster_path, comparison_table)
     click.echo(f'Clusters have been saved in {output_cluster_path}')
 
 def fcluster_to_clustering(fcluster):
@@ -165,6 +170,7 @@ def fcluster_to_clustering(fcluster):
 @click.option('--num-clusters', '-n', help='Set the number of preferred clusters (overrides --max-distances).', type=int)
 def cluster(path_to_submissions_directory, max_distance, num_clusters):
     output_path = os.path.join(path_to_submissions_directory, 'output')
+    comparison_table = np.load(os.path.join(output_path, EDITDISTANCE_NAME))
     submissions = get_submissions(path_to_submissions_directory)
     linkage_matrix = np.load(os.path.join(output_path, LINKAGE_NAME))
     if num_clusters is not None:
@@ -177,9 +183,9 @@ def cluster(path_to_submissions_directory, max_distance, num_clusters):
         click.echo('Must provide either a max distance or a set number of clusters (using -d or -n flags).')
         return
     clustering = fcluster_to_clustering(clustering)
-    print(f'Clusters: {clustering}')
+    print(f'Cluster sizes: {[len(cluster) for cluster in clustering]}')
     output_cluster_path = os.path.join(output_path, 'clusters')
-    save_clustering_as_directory_structure(submissions, clustering, output_cluster_path)
+    save_clustering_as_directory_structure(submissions, clustering, output_cluster_path, comparison_table)
     click.echo(f'Clusters have been saved in {output_cluster_path}')
 
 @cli.command(help='Draw a dendrogram for the linkage produced by the clustering,\nsaved in {output}/dendrogram.png')
