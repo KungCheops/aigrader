@@ -78,7 +78,7 @@ def parse_file(path, ignore_assignments):
 
 
 def print_progress(total, current):
-    print('{}/{}'.format(current, total))
+    print('{}/{}'.format(current, total), end='\r')
 
 
 def calculate_edit_distance(submissions : List[ASTWrapper], match_functions : bool, scaffold : List[str] = None, submission_names = None) -> np.array:
