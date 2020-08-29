@@ -43,7 +43,6 @@ def get_submissions(path):
 def editdist(path_to_submissions_directory, function_match, ignore_assignments):
     click.echo('Computing edit distances.')
     submissions = get_submissions(path_to_submissions_directory)
-    submissions = [submissions[0], submissions[17]]
     output_directory = get_output_directory(submissions)
     os.makedirs(output_directory, exist_ok=True)
     output_file = os.path.join(output_directory, EDITDISTANCE_NAME)
