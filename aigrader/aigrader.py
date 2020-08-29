@@ -32,8 +32,8 @@ def get_output_directory(path_or_submissions):
 
 
 def get_submissions(path):
-    return [py_file for py_file in glob.glob(os.path.join(path, '*.py'))
-            if basename(py_file) != SCAFFOLD_NAME]
+    return sorted([py_file for py_file in glob.glob(os.path.join(path, '*.py'))
+            if basename(py_file) != SCAFFOLD_NAME])
 
 
 @cli.command(help=f'Compute edit distance between all files provided. Result saved in {{submissions}}/output/{EDITDISTANCE_NAME}')
