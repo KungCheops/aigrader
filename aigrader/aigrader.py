@@ -270,8 +270,6 @@ def stats(path_to_submissions_directory, cluster_number, human_in_the_loop):
         except:
             continue
         clusters[root_int] = sorted([int(f) for f in files if f.isnumeric()])
-    click.echo(clusters)
-    click.echo(compute_all_average_distances(comparison_table, clusters))
 
     if len(clusters[cluster_number]) <= 2:
         raise click.ClickException('Cluster size must be >=3.')
