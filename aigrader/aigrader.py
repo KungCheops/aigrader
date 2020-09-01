@@ -274,6 +274,7 @@ def stats(path_to_submissions_directory, cluster_number):
     cluster_median, cluster_median_avg_dist = find_representative(comparison_table, clusters[cluster_number])
     cluster_outlier, cluster_outlier_avg_dist = find_outlier(comparison_table, clusters[cluster_number])
     cluster_neighbor, cluster_neighbor_avg_dist = find_neighbor(comparison_table, clusters[cluster_number], cluster_non_members)
+    cluster_neighbor_cluster = [cluster_number for (cluster_number, cluster_members) in clusters.items() if cluster_neighbor in cluster_members][0]
     click.echo(' Cluster representative: '.center(80, '#') + '\n')
     click.echo('File name: {}\nAverage distance: {}\n'.format(basename(submissions[cluster_median]), cluster_median_avg_dist))
     hloop.print_submission(submissions[cluster_median])
@@ -284,7 +285,7 @@ def stats(path_to_submissions_directory, cluster_number):
     click.echo()
     if cluster_neighbor is not None:
         click.echo(' Non cluster member closest to the cluster: '.center(80, '#') + '\n')
-        click.echo('File name: {}\nAverage distance: {}\n'.format(basename(submissions[cluster_neighbor]), cluster_neighbor_avg_dist))
+        click.echo('File name: {}\nFile number: {}\nCluster: {}\nAverage distance: {}\n'.format(basename(submissions[cluster_neighbor]), cluster_neighbor, cluster_neighbor_cluster, cluster_neighbor_avg_dist))
         hloop.print_submission(submissions[cluster_neighbor])
         click.echo()
     click.echo('#' * 80)
