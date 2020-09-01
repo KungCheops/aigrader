@@ -247,15 +247,21 @@ def compute_average_distance(comparison_table, cluster_members_1, cluster_member
     average_dist = distances / (len(submission_comparison) * len(submission_comparison[0]))
     return average_dist
 
-@cli.command(help='Print some statistics and information about a certain cluster')
+@cli.command(help='Print some statistics and information about a certain cluster.')
 @click.argument('path_to_submissions_directory', nargs=1, default='.', type=click.Path(exists=True))
 @click.option('--cluster-number', '-c', type=int, default=0)
-def stats(path_to_submissions_directory, cluster_number):
+@click.option('--human-in-the-loop', '-h', is_flag=True, default=False, help='Use clusters from human-in-the-loop clustering.')
+def stats(path_to_submissions_directory, cluster_number, human_in_the_loop):
     output_path = os.path.join(path_to_submissions_directory, 'output')
     submissions = get_submissions(path_to_submissions_directory)
     click.echo('opening: ' + os.path.join(output_path, EDITDISTANCE_NAME))
     comparison_table = np.load(os.path.join(output_path, EDITDISTANCE_NAME))
-    path_to_clusters = os.path.join(output_path, 'clusters')
+    if not human_in_the_loop:
+        path_to_clusters = os.path.join(output_path, 'clusters')
+    else:
+        path_to_clusters = os.path.join(output_path, 'clusters-human-in-the-loop')
+    if not os.path.exists(path_to_clusters):
+        raise click.ClickException('Cluster path does not exist.')
 
     clusters = {}
     for root, folders, files in os.walk(path_to_clusters):
