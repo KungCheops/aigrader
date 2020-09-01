@@ -261,7 +261,7 @@ def stats(path_to_submissions_directory, cluster_number):
             root_int = int(root.split('/')[-1])
         except:
             continue
-        clusters[root_int] = sorted([int(f) for f in files])
+        clusters[root_int] = sorted([int(f) for f in files if f.isdigit()])
     click.echo(clusters)
     click.echo(compute_all_average_distances(comparison_table, clusters))
 
