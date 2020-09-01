@@ -174,7 +174,8 @@ def cluster(path_to_submissions_directory, max_distance, num_clusters):
     linkage_matrix = np.load(os.path.join(output_path, LINKAGE_NAME))
     if num_clusters is not None:
         if max_distance is not None:
-            click.echo('Ignoring distance flag as max cluster flag is set.')
+            click.echo('Can only use one of -d and -n (max distance or number of clusters.')
+            return
         clustering = fcluster(linkage_matrix, num_clusters, 'maxclust')
     elif max_distance is not None:
         clustering = fcluster(linkage_matrix, max_distance, 'distance')
