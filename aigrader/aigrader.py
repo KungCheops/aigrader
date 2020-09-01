@@ -183,7 +183,8 @@ def cluster(path_to_submissions_directory, max_distance, num_clusters):
         click.echo('Must provide either a max distance or a set number of clusters (using -d or -n flags).')
         return
     clustering = fcluster_to_clustering(clustering)
-    print(f'Cluster sizes: {[len(cluster) for cluster in clustering]}')
+    click.echo(f'Cluster sizes: {[len(cluster) for cluster in clustering]}')
+    click.echo(f'Clusters: {clustering}')
     output_cluster_path = os.path.join(output_path, 'clusters')
     save_clustering_as_directory_structure(submissions, clustering, output_cluster_path, comparison_table)
     click.echo(f'Clusters have been saved in {output_cluster_path}')
@@ -262,7 +263,7 @@ def stats(path_to_submissions_directory, cluster_number):
             root_int = int(root.split('/')[-1])
         except:
             continue
-        clusters[root_int] = sorted([int(f) for f in files])
+        clusters[root_int] = sorted([int(f) for f in files if f.isnumeric()])
     click.echo(clusters)
     click.echo(compute_all_average_distances(comparison_table, clusters))
 
