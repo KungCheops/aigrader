@@ -40,8 +40,8 @@ def get_submissions(path):
 @click.argument('path_to_submissions_directory', nargs=1, default='.', type=click.Path(exists=True))
 @click.option('--function-match', '-f', is_flag=True, help='Match functions directly instead of comparing full source code ASTs.')
 @click.option('--ignore-assignments', '-i', is_flag=True, help='Ignore all assignment statements when parsing the ASTs (may speed up computation speed).')
-def editdist(path_to_submissions_directory, function_match, ignore_assignments):
-    click.echo('Computing edit distances.')
+@click.option('--verbose', '-v', is_flag=True)
+def editdist(path_to_submissions_directory, function_match, ignore_assignments, verbose):
     submissions = get_submissions(path_to_submissions_directory)
     output_directory = get_output_directory(submissions)
     os.makedirs(output_directory, exist_ok=True)
@@ -53,7 +53,8 @@ def editdist(path_to_submissions_directory, function_match, ignore_assignments):
                                                 function_match,
                                                 scaffold,
                                                 submissions)
-    click.echo(edit_distances)
+    if verbose:
+        click.echo(edit_distances)
     np.save(output_file, edit_distances)
     click.echo(f'Saved as \'{output_file}\'.')
 
@@ -62,7 +63,6 @@ def editdist(path_to_submissions_directory, function_match, ignore_assignments):
 @click.argument('path_to_submissions_directory', nargs=1, default='.', type=click.Path(exists=True))
 @click.option('--method', default='ward', help='Clustering method to use.', show_default=True)
 def linkage(path_to_submissions_directory, method):
-    click.echo('Cluster submissions based on comparison file.')
     output_directory = get_output_directory(path_to_submissions_directory)
     edit_distance_file = os.path.join(output_directory, EDITDISTANCE_NAME)
     comparison_table = np.load(edit_distance_file)
@@ -77,7 +77,6 @@ def linkage(path_to_submissions_directory, method):
 @click.option('--function-match', '-f', is_flag=True, help='Not Implemented. Match functions directly instead of comparing full source code ASTs.')
 @click.option('--scaffold', '-s', type=click.Path(), help='Not Implemented. Provide a scaffold file to use for function name matching.')
 def abctest(path_to_submissions_directory, function_match, scaffold):
-    click.echo('Test computed edit distance.')
     submissions = get_submissions(path_to_submissions_directory)
     cont = True
     edit_distance_file_path = os.path.join(get_output_directory(submissions), EDITDISTANCE_NAME)
@@ -140,14 +139,16 @@ def save_clustering_as_directory_structure(submissions, clustering, output_path,
 
 @cli.command(help='Create cluster groups from linkage using a human-in-the-loop method.')
 @click.argument('path_to_submissions_directory', nargs=1, default='.', type=click.Path(exists=True))
-def mclust(path_to_submissions_directory):
+@click.option('--verbose', '-v', is_flag=True)
+def mclust(path_to_submissions_directory, verbose):
     output_path = os.path.join(path_to_submissions_directory, 'output')
     submissions = get_submissions(path_to_submissions_directory)
     comparison_table = np.load(os.path.join(output_path, EDITDISTANCE_NAME))
     linkage_matrix = np.load(os.path.join(output_path, LINKAGE_NAME))
     tree = hloop.create_tree(linkage_matrix, len(submissions))
     clustering = hloop.split_tree(submissions, comparison_table, tree)
-    click.echo(f'Clusters: {clustering}')
+    if verbose:
+        click.echo(f'Clusters: {clustering}')
     output_cluster_path = os.path.join(output_path, 'clusters-human-in-the-loop')
     save_clustering_as_directory_structure(submissions, clustering, output_cluster_path, comparison_table)
     click.echo(f'Clusters have been saved in {output_cluster_path}')
@@ -167,24 +168,24 @@ def fcluster_to_clustering(fcluster):
 @click.argument('path_to_submissions_directory', nargs=1, default='.', type=click.Path(exists=True))
 @click.option('--max-distance', '-d', help='Set a maximum distance between two clusters.', type=float)
 @click.option('--num-clusters', '-n', help='Set the number of preferred clusters (overrides --max-distances).', type=int)
-def cluster(path_to_submissions_directory, max_distance, num_clusters):
+@click.option('--verbose', '-v', is_flag=True)
+def cluster(path_to_submissions_directory, max_distance, num_clusters, verbose):
     output_path = os.path.join(path_to_submissions_directory, 'output')
     comparison_table = np.load(os.path.join(output_path, EDITDISTANCE_NAME))
     submissions = get_submissions(path_to_submissions_directory)
     linkage_matrix = np.load(os.path.join(output_path, LINKAGE_NAME))
     if num_clusters is not None:
         if max_distance is not None:
-            click.echo('Can only use one of -d and -n (max distance or number of clusters.')
-            return
+            raise click.ClickException('Can only use one of -d and -n (max distance or number of clusters.')
         clustering = fcluster(linkage_matrix, num_clusters, 'maxclust')
     elif max_distance is not None:
         clustering = fcluster(linkage_matrix, max_distance, 'distance')
     else:
-        click.echo('Must provide either a max distance or a set number of clusters (using -d or -n flags).')
-        return
+        raise click.ClickException('Must provide either a max distance or a set number of clusters (using -d or -n flags).')
     clustering = fcluster_to_clustering(clustering)
-    click.echo(f'Cluster sizes: {[len(cluster) for cluster in clustering]}')
-    click.echo(f'Clusters: {clustering}')
+    if verbose:
+        click.echo(f'Cluster sizes: {[len(cluster) for cluster in clustering]}')
+        click.echo(f'Clusters: {clustering}')
     output_cluster_path = os.path.join(output_path, 'clusters')
     save_clustering_as_directory_structure(submissions, clustering, output_cluster_path, comparison_table)
     click.echo(f'Clusters have been saved in {output_cluster_path}')
@@ -193,7 +194,6 @@ def cluster(path_to_submissions_directory, max_distance, num_clusters):
 @click.argument('path_to_submissions_directory', nargs=1, default='.', type=click.Path(exists=True))
 @click.option('--clustermap', '-c', help='Generate the dendrogram together with a clustermap (see seaborn.clustermap for documentation).', is_flag=True, default=False)
 def dendrogram(path_to_submissions_directory, clustermap):
-    click.echo(f'Draw a dendrogram for the linkage produced by the clustering.')
     output_path = os.path.join(path_to_submissions_directory, 'output')
     linkage_matrix = np.load(os.path.join(output_path, LINKAGE_NAME))
     edit_distances = np.load(os.path.join(output_path, EDITDISTANCE_NAME))
@@ -254,7 +254,6 @@ def compute_average_distance(comparison_table, cluster_members_1, cluster_member
 def stats(path_to_submissions_directory, cluster_number, human_in_the_loop):
     output_path = os.path.join(path_to_submissions_directory, 'output')
     submissions = get_submissions(path_to_submissions_directory)
-    click.echo('opening: ' + os.path.join(output_path, EDITDISTANCE_NAME))
     comparison_table = np.load(os.path.join(output_path, EDITDISTANCE_NAME))
     if not human_in_the_loop:
         path_to_clusters = os.path.join(output_path, 'clusters')
