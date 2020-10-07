@@ -61,7 +61,7 @@ def editdist(path_to_submissions_directory, function_match, ignore_assignments, 
 
 @cli.command(help=f'Create linkage matrix for submissions based on edit distance file and save in {{submissions}}/output/{LINKAGE_NAME}')
 @click.argument('path_to_submissions_directory', nargs=1, default='.', type=click.Path(exists=True))
-@click.option('--method', default='ward', help='Clustering method to use.', show_default=True)
+@click.option('--method', default='complete', help='Clustering method to use.', show_default=True)
 def linkage(path_to_submissions_directory, method):
     output_directory = get_output_directory(path_to_submissions_directory)
     edit_distance_file = os.path.join(output_directory, EDITDISTANCE_NAME)
