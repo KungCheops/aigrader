@@ -36,7 +36,7 @@ def get_submissions(path):
             if basename(py_file) != SCAFFOLD_NAME])
 
 
-@cli.command(help=f'Compute edit distance between all files provided. Result saved in {{submissions}}/output/{EDITDISTANCE_NAME}')
+@cli.command(help=f'Compute the edit distance between all python files in the provided directory (excluding scaffold.py). Result saved in {{submissions}}/output/{EDITDISTANCE_NAME}')
 @click.argument('path_to_submissions_directory', nargs=1, default='.', type=click.Path(exists=True))
 @click.option('--function-match', '-f', is_flag=True, help='Match functions directly instead of comparing full source code ASTs.')
 @click.option('--ignore-assignments', '-i', is_flag=True, help='Ignore all assignment statements when parsing the ASTs (may speed up computation speed).')
