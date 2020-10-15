@@ -251,7 +251,7 @@ def compute_average_distance(comparison_table, cluster_members_1, cluster_member
 @click.argument('path_to_submissions_directory', nargs=1, default='.', type=click.Path(exists=True))
 @click.option('--cluster-number', '-c', type=int, default=0)
 @click.option('--human-in-the-loop', '-h', is_flag=True, default=False, help='Use clusters from human-in-the-loop clustering.')
-def stats(path_to_submissions_directory, cluster_number, human_in_the_loop):
+def clustrep(path_to_submissions_directory, cluster_number, human_in_the_loop):
     output_path = os.path.join(path_to_submissions_directory, 'output')
     submissions = get_submissions(path_to_submissions_directory)
     comparison_table = np.load(os.path.join(output_path, EDITDISTANCE_NAME))
