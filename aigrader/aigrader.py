@@ -204,7 +204,8 @@ def dendrogram(path_to_submissions_directory, clustermap):
         sns.clustermap(edit_distances,
                        row_linkage=linkage_matrix,
                        col_linkage=linkage_matrix,
-                       annot_kws={"size": 16})
+                       annot_kws={"size": 16},
+                       cmap='YlGnBu')
     output_chart_path = os.path.join(output_path, 'dendrogram.png')
     plt.savefig(output_chart_path)
     click.echo(f'Saved as \'{output_chart_path}\'.')
