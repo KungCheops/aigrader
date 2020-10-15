@@ -72,7 +72,7 @@ def linkage(path_to_submissions_directory, method):
     np.save(output_file, linkage_matrix)
     click.echo(f'Saved as \'{output_file}\'.')
 
-@cli.command()
+@cli.command(help='Conducts a test where the user is continuously prompted to answer which of two files, B and C, are closest to a file A. It then checks whether this agrees with the computed edit distances.')
 @click.argument('path_to_submissions_directory', nargs=1, default='.', type=click.Path(exists=True))
 @click.option('--function-match', '-f', is_flag=True, help='Not Implemented. Match functions directly instead of comparing full source code ASTs.')
 @click.option('--scaffold', '-s', type=click.Path(), help='Not Implemented. Provide a scaffold file to use for function name matching.')
