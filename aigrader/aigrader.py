@@ -81,7 +81,6 @@ def abctest(path_to_submissions_directory, function_match, scaffold):
     cont = True
     edit_distance_file_path = os.path.join(get_output_directory(submissions), EDITDISTANCE_NAME)
     edit_distances = np.load(edit_distance_file_path)
-    click.echo(edit_distances)
 
     trials = 0
     correct = 0
