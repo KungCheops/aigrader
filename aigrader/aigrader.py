@@ -165,7 +165,7 @@ def fcluster_to_clustering(fcluster):
 
 @cli.command(help='Create cluster groups from linkage using either a max distance or a max number of clusters.')
 @click.argument('path_to_submissions_directory', nargs=1, default='.', type=click.Path(exists=True))
-@click.option('--max-distance', '-d', help='Set a maximum distance between two clusters.', type=float)
+@click.option('--max-distance', '-d', help='Set a maximum cophenetic distance between two clusters.', type=float)
 @click.option('--num-clusters', '-n', help='Set the number of preferred clusters (overrides --max-distances).', type=int)
 @click.option('--verbose', '-v', is_flag=True)
 def cluster(path_to_submissions_directory, max_distance, num_clusters, verbose):
