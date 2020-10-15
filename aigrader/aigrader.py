@@ -200,7 +200,7 @@ def dendrogram(path_to_submissions_directory, clustermap):
     if not clustermap:
         scipy_dendrogram(linkage_matrix)
     else:
-        sns.set(font_scale=.5)
+        sns.set(font_scale=1.8)
         sns.clustermap(edit_distances,
                        row_linkage=linkage_matrix,
                        col_linkage=linkage_matrix,
