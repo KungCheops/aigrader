@@ -246,7 +246,7 @@ def compute_average_distance(comparison_table, cluster_members_1, cluster_member
     average_dist = distances / (len(submission_comparison) * len(submission_comparison[0]))
     return average_dist
 
-@cli.command(help='Print some statistics and information about a certain cluster.')
+@cli.command(help='Prints the cluster representative, most distant cluster outlier and the cluster non member which is closest to this cluster.')
 @click.argument('path_to_submissions_directory', nargs=1, default='.', type=click.Path(exists=True))
 @click.option('--cluster-number', '-c', type=int, default=0)
 @click.option('--human-in-the-loop', '-h', is_flag=True, default=False, help='Use clusters from human-in-the-loop clustering.')
