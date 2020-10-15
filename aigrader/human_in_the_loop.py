@@ -103,7 +103,7 @@ def try_split(submissions, comparison_table, tree):
     print_submission(submissions[r_rep])
     click.echo()
     click.echo('#' * 64 + '\n')
-    similar = click.confirm('Are these to submissions similar enough to be given the same comments?\n')
+    similar = click.confirm('Are these to submissions similar enough to be in the same cluster?\n')
     return not similar
 
 def split_tree(submissions, comparison_table, tree):
