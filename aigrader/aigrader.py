@@ -2,6 +2,7 @@ import glob
 import os
 import os.path
 import shutil
+import time
 
 import click
 import numpy as np
@@ -41,7 +42,8 @@ def get_submissions(path):
 @click.option('--function-match', '-f', is_flag=True, help='Match functions directly instead of comparing full source code ASTs.')
 @click.option('--ignore-assignments', '-i', is_flag=True, help='Ignore all assignment statements when parsing the ASTs (may speed up computation speed).')
 @click.option('--verbose', '-v', is_flag=True)
-def editdist(path_to_submissions_directory, function_match, ignore_assignments, verbose):
+@click.option('--print-time', '-t', is_flag=True, help='Print elapsed time (in seconds).')
+def editdist(path_to_submissions_directory, function_match, ignore_assignments, verbose, print_time):
     submissions = get_submissions(path_to_submissions_directory)
     output_directory = get_output_directory(submissions)
     os.makedirs(output_directory, exist_ok=True)
@@ -49,6 +51,8 @@ def editdist(path_to_submissions_directory, function_match, ignore_assignments, 
     submission_asts = [ah.parse_file(submission, ignore_assignments=ignore_assignments) for submission in submissions]
     scaffold_path = os.path.join(path_to_submissions_directory, SCAFFOLD_NAME)
     scaffold = ah.find_functions(ah.parse_file(scaffold_path, ignore_assignments=ignore_assignments))
+    if print_time:
+        start_time = time.time()
     edit_distances = ah.calculate_edit_distance(submission_asts,
                                                 function_match,
                                                 scaffold,
@@ -56,7 +60,10 @@ def editdist(path_to_submissions_directory, function_match, ignore_assignments, 
     if verbose:
         click.echo(edit_distances)
     np.save(output_file, edit_distances)
-    click.echo(f'Saved as \'{output_file}\'.')
+    if print_time:
+        click.echo(f'{time.time() - start_time:.2f}')
+    else:
+        click.echo(f'Saved as \'{output_file}\'.')
 
 
 @cli.command(help=f'Create linkage matrix for submissions based on edit distance file and save in {{submissions}}/output/{LINKAGE_NAME}')
