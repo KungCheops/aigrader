@@ -1,14 +1,18 @@
-from __future__ import generators
+def fib (limit) :
+    a = 0
+    b = 1
+    yield b
+    while True:
+        if a+b > limit:
+            return
+        yield a+b
+        a,b = b,a
+        b += a
 
-def fib(limit):
-    a, b = 0, 1
-    for i in range(limit):
-        yield a
-        a, b = b, a + b
-
-def list_fib(limit):
-    list = [ a for a in fib(limit) if a < limit]
-    print(list)
+def list_fib(limit) :
+    list = []
+    generator = fib(limit)
+    list = [i for i in generator]
     return list
 
 if __name__ == "__main__":

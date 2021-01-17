@@ -1,6 +1,7 @@
 def fib(limit):
-    prev = 0
     curr = 1
+    prev = 0
+    a = prev
     while prev <= limit:
         yield prev
         curr = prev + curr
